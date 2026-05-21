@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Arcana — Tarot Reading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0b14;
+    --bg2: #13101e;
+    --bg3: #1c1828;
+    --border: rgba(180,150,255,0.12);
+    --border2: rgba(180,150,255,0.22);
+    --accent: #c9a8ff;
+    --accent2: #e8d5ff;
+    --gold: #f0c060;
+    --gold2: #fde080;
+    --text: #e8e0f5;
+    --muted: #8878a8;
+    --card-bg: #1a1530;
+    --card-hover: #231d3e;
+    --selected: #2d2250;
+    --selected-border: #9b70ff;
+    --tag-bg: rgba(155,112,255,0.18);
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Crimson Pro', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Stars bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 60%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,0.25) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 90%, rgba(255,255,255,0.15) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 25% 45%, rgba(200,170,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 35%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 0 16px 60px; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 40px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+  .header-symbol { font-size: 28px; margin-bottom: 8px; }
+  .header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(26px, 6vw, 38px);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--accent2);
+  }
+  .header p { font-size: 15px; color: var(--muted); margin-top: 6px; font-style: italic; }
+
+  /* API Key setup */
+  #setup-screen { padding: 24px 0; }
+  .setup-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+  }
+  .setup-card h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 17px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    letter-spacing: 0.06em;
+  }
+  .setup-card p { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  input[type="text"], input[type="password"], textarea, select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'Crimson Pro', serif;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--accent2);
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: rgba(155,112,255,0.12); border-color: var(--accent); }
+  .btn-primary {
+    background: rgba(155,112,255,0.2);
+    border-color: var(--selected-border);
+  }
+  .btn-primary:hover { background: rgba(155,112,255,0.35); }
+  .btn-gold {
+    background: rgba(240,192,96,0.15);
+    border-color: var(--gold);
+    color: var(--gold2);
+  }
+  .btn-gold:hover { background: rgba(240,192,96,0.28); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-sm { padding: 7px 14px; font-size: 12px; }
+
+  /* Main dashboard */
+  #dashboard { display: none; }
+
+  .section-label {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .form-group { margin-bottom: 22px; }
+
+  /* Card grid */
+  .suit-section { margin-bottom: 28px; }
+  .suit-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .suit-name {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+  .suit-emoji { font-size: 16px; }
+  .suit-desc { font-size: 12px; color: var(--muted); font-style: italic; }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 7px;
+  }
+
+  .card-tile {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    text-align: center;
+    position: relative;
+  }
+  .card-tile:hover { background: var(--card-hover); border-color: var(--border2); transform: translateY(-1px); }
+  .card-tile.selected {
+    background: var(--selected);
+    border-color: var(--selected-border);
+  }
+  .card-tile.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    font-size: 10px;
+    color: var(--accent);
+    font-family: sans-serif;
+  }
+  .card-tile-name {
+    font-size: 11.5px;
+    line-height: 1.35;
+    color: var(--text);
+    font-weight: 400;
+  }
+  .card-tile.selected .card-tile-name { color: var(--accent2); }
+  .card-tile-sub {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+    font-style: italic;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Selected cards list */
+  .selected-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin-bottom: 22px;
+    min-height: 64px;
+  }
+  .selected-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .selected-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--tag-bg);
+    border: 1px solid rgba(155,112,255,0.25);
+    border-radius: 20px;
+    padding: 4px 10px 4px 12px;
+    font-size: 12.5px;
+    color: var(--accent2);
+  }
+  .tag-remove {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(155,112,255,0.3);
+    color: var(--accent);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    line-height: 1;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .tag-remove:hover { background: rgba(220,80,80,0.4); color: #ff9090; }
+
+  .empty-state { font-size: 13px; color: var(--muted); font-style: italic; }
+
+  /* Reading output */
+  #output-section { display: none; margin-top: 32px; }
+  .reading-card {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .reading-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+  .reading-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 12px;
+  }
+  .reading-meta h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 15px;
+    color: var(--accent2);
+    margin-bottom: 4px;
+  }
+  .reading-meta p { font-size: 13px; color: var(--muted); }
+  .reading-body {
+    font-size: 16.5px;
+    line-height: 1.85;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .reading-body em { color: var(--accent); font-style: italic; }
+
+  /* loading dots */
+  .loading-dots { display: inline-flex; gap: 5px; align-items: center; }
+  .loading-dots span {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: bounce 1.2s infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* Sticky submit bar */
+  .submit-bar {
+    position: sticky;
+    bottom: 0;
+    background: linear-gradient(to top, var(--bg) 80%, transparent);
+    padding: 16px 0 8px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    z-index: 10;
+  }
+  .submit-bar .count-badge {
+    font-size: 13px; color: var(--muted);
+  }
+
+  .error-msg {
+    background: rgba(220,80,80,0.12);
+    border: 1px solid rgba(220,80,80,0.3);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #ff9090;
+    margin-bottom: 16px;
+  }
+
+  /* API key display */
+  .api-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .api-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #4caf50;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0;
+  }
+
+  /* Scrollable card area */
+  .cards-scroll-area { max-height: 480px; overflow-y: auto; padding-right: 4px; }
+  .cards-scroll-area::-webkit-scrollbar { width: 4px; }
+  .cards-scroll-area::-webkit-scrollbar-track { background: transparent; }
+  .cards-scroll-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  @media (max-width: 500px) {
+    .cards-grid { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 6px; }
+    .card-tile { padding: 7px 6px; }
+    .card-tile-name { font-size: 10.5px; }
+    .card-tile-sub { display: none; }
+    .reading-body { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-symbol">✦ ✧ ✦</div>
+    <h1>ARCANA</h1>
+    <p>Tarot reading powered by AI · Ask the cards</p>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div id="setup-screen">
+    <div class="setup-card">
+      <h2>Connect Your OpenAI Account</h2>
+      <p>Enter your OpenAI API key to begin. Your key is stored locally on your device only — never sent anywhere except directly to OpenAI.</p>
+      <div class="form-group">
+        <label>OpenAI API Key</label>
+        <input type="password" id="api-key-input" placeholder="sk-..." autocomplete="off" />
+      </div>
+      <button class="btn btn-primary" onclick="saveApiKey()">✦ Begin Reading</button>
+      <p style="margin-top:14px; font-size:12px; color:var(--muted);">
+        Get your key at <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--accent);">platform.openai.com</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+
+    <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+      <div class="api-status">
+        <div class="api-dot"></div>
+        <span>Connected to OpenAI</span>
+      </div>
+      <button class="btn btn-sm" onclick="changeKey()">Change Key</button>
+    </div>
+
+    <!-- Question + Category -->
+    <div class="form-group">
+      <label>Your Question</label>
+      <textarea id="question-input" placeholder="e.g. Will things work out between me and this person?&#10;What energy is around my love life right now?" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Category / Focus</label>
+      <input type="text" id="category-input" placeholder="e.g. Love & Relationships · Career · Self-Growth · General" />
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Selected cards -->
+    <div class="section-label">Selected Cards <span id="selected-count" style="color:var(--accent);">0</span></div>
+    <div class="selected-panel">
+      <div id="selected-tags-container">
+        <div class="empty-state">Tap cards below to add them to your reading...</div>
+      </div>
+    </div>
+
+    <!-- Cards picker -->
+    <div class="section-label" style="margin-bottom:14px;">Pick Your Cards</div>
+    <div class="cards-scroll-area" id="card-grid-container"></div>
+
+    <div class="submit-bar">
+      <button class="btn btn-gold" id="submit-btn" onclick="submitReading()">✦ Read the Cards</button>
+      <span class="count-badge" id="submit-label">Select at least 1 card</span>
+      <button class="btn btn-sm" id="clear-btn" onclick="clearAll()" style="margin-left:auto; display:none;">Clear all</button>
+    </div>
+
+    <div id="error-container"></div>
+
+    <!-- Output -->
+    <div id="output-section">
+      <div class="reading-card">
+        <div class="reading-header">
+          <div class="reading-meta">
+            <h3>✦ The Reading</h3>
+            <p id="output-meta"></p>
+          </div>
+          <button class="btn btn-sm" onclick="copyReading()">Copy</button>
+        </div>
+        <div class="reading-body" id="reading-output"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const CARDS = {
+  "Major Arcana": {
+    emoji: "🌙",
+    desc: "Life themes & spiritual lessons",
+    cards: [
+      { name: "The Fool", sub: "carefree, impulsive, bahala na" },
+      { name: "The Magician", sub: "confident, manifesting, makes things happen" },
+      { name: "High Priestess", sub: "mysterious, intuitive, knows more than they show" },
+      { name: "The Empress", sub: "soft, caring, nurturing, attractive feminine energy" },
+      { name: "The Emperor", sub: "stable, serious, controlling, wants authority" },
+      { name: "The Lovers", sub: "attraction, emotional connection, important choice" },
+      { name: "The Chariot", sub: "determined, pushing forward, strong will" },
+      { name: "Strength", sub: "calm strength, patient, emotionally controlled" },
+      { name: "The Hermit", sub: "distant, isolating, needs space" },
+      { name: "Wheel of Fortune", sub: "changing situation, fate, on and off cycles" },
+      { name: "Justice", sub: "fairness, accountability, wanting clarity" },
+      { name: "The Hanged Man", sub: "waiting, pause, no movement yet" },
+      { name: "Death", sub: "endings, transformation, new chapter" },
+      { name: "Temperance", sub: "balance, healthy connection, emotional harmony" },
+      { name: "The Devil", sub: "obsession, attachment, toxic attraction, temptation" },
+      { name: "The Tower", sub: "sudden chaos, shocking truth, emotional breakdown" },
+      { name: "The Star", sub: "hope, healing, soft genuine feelings" },
+      { name: "The Moon", sub: "confusion, hidden feelings, mixed signals" },
+      { name: "The Sun", sub: "happiness, warmth, comfort, genuine positivity" },
+      { name: "Judgement", sub: "realization, awakening, suddenly understanding feelings" },
+      { name: "The World", sub: "completion, fulfillment, reaching the end of a cycle" },
+    ]
+  },
+  "Cups — Love & Feelings": {
+    emoji: "💧",
+    desc: "Emotions, relationships, heart matters",
+    cards: [
+      { name: "Ace of Cups", sub: "new feelings, emotional opening, possible crush" },
+      { name: "2 of Cups", sub: "mutual attraction, emotional connection, chemistry" },
+      { name: "3 of Cups", sub: "friendship, fun teasing, flirty social energy" },
+      { name: "4 of Cups", sub: "emotionally unavailable, bored, distant" },
+      { name: "5 of Cups", sub: "sadness, regret, heartbreak, disappointment" },
+      { name: "6 of Cups", sub: "nostalgia, comfort, past connection returning" },
+      { name: "7 of Cups", sub: "fantasy, confusion, idealizing someone" },
+      { name: "8 of Cups", sub: "emotionally walking away, leaving feelings behind" },
+      { name: "9 of Cups", sub: "happiness, kilig, emotional satisfaction" },
+      { name: "10 of Cups", sub: "healthy relationship, happy family, emotional fulfillment" },
+      { name: "Page of Cups", sub: "shy crush, cute feelings, emotional curiosity" },
+      { name: "Knight of Cups", sub: "romantic flirt, expressive feelings, sweet talker" },
+      { name: "Queen of Cups", sub: "emotionally mature, caring, nurturing, intuitive" },
+      { name: "King of Cups", sub: "deep emotions but controlled and hard to read" },
+    ]
+  },
+  "Swords — Mind & Stress": {
+    emoji: "⚔️",
+    desc: "Thoughts, conflicts, mental energy",
+    cards: [
+      { name: "Ace of Swords", sub: "truth, confession, direct communication" },
+      { name: "2 of Swords", sub: "indecision, avoidance, confusion" },
+      { name: "3 of Swords", sub: "heartbreak, emotional pain, jealousy" },
+      { name: "4 of Swords", sub: "rest, withdrawal, ghosting, silence" },
+      { name: "5 of Swords", sub: "ego conflict, tension, emotional games" },
+      { name: "6 of Swords", sub: "healing, moving on, emotional transition" },
+      { name: "7 of Swords", sub: "sneaky behavior, avoidance, hiding something" },
+      { name: "8 of Swords", sub: "trapped in overthinking, anxiety" },
+      { name: "9 of Swords", sub: "stress, overthinking, emotional suffering" },
+      { name: "10 of Swords", sub: "burnout, emotional collapse, painful ending" },
+      { name: "Page of Swords", sub: "watching/stalking, curious, nervous energy" },
+      { name: "Knight of Swords", sub: "impulsive communication, hot and cold behavior" },
+      { name: "Queen of Swords", sub: "independent, observant, emotionally guarded" },
+      { name: "King of Swords", sub: "logical, detached, emotionally controlled" },
+    ]
+  },
+  "Wands — Passion & Action": {
+    emoji: "🔥",
+    desc: "Energy, motivation, desire",
+    cards: [
+      { name: "Ace of Wands", sub: "attraction, excitement, spark" },
+      { name: "2 of Wands", sub: "thinking about the future, possibilities" },
+      { name: "3 of Wands", sub: "waiting for progress, expecting something" },
+      { name: "4 of Wands", sub: "stable relationship, comfort, celebration" },
+      { name: "5 of Wands", sub: "competition, arguments, jealousy" },
+      { name: "6 of Wands", sub: "attention, wanting validation, confidence" },
+      { name: "7 of Wands", sub: "defensive, guarded, protecting feelings" },
+      { name: "8 of Wands", sub: "fast movement, messages, quick progress" },
+      { name: "9 of Wands", sub: "emotionally tired but still trying" },
+      { name: "10 of Wands", sub: "burdened, overwhelmed, emotionally exhausted" },
+      { name: "Page of Wands", sub: "playful flirting, energetic, curious" },
+      { name: "Knight of Wands", sub: "passionate, exciting, inconsistent, hot and cold" },
+      { name: "Queen of Wands", sub: "confident, magnetic, attractive energy" },
+      { name: "King of Wands", sub: "charismatic, bold, natural leader/flirt" },
+    ]
+  },
+  "Pentacles — Stability & Future": {
+    emoji: "🌿",
+    desc: "Material world, long-term, practicality",
+    cards: [
+      { name: "Ace of Pentacles", sub: "serious opportunity, stable beginning" },
+      { name: "2 of Pentacles", sub: "juggling emotions/situations, inconsistency" },
+      { name: "3 of Pentacles", sub: "teamwork, mutual effort, cooperation" },
+      { name: "4 of Pentacles", sub: "possessive, holding on tightly, fear of losing" },
+      { name: "5 of Pentacles", sub: "loneliness, insecurity, feeling unsupported" },
+      { name: "6 of Pentacles", sub: "equal effort, balanced connection" },
+      { name: "7 of Pentacles", sub: "patience, waiting, slow progress" },
+      { name: "8 of Pentacles", sub: "effort, consistency, dedication" },
+      { name: "9 of Pentacles", sub: "independent, successful, rich tita vibes" },
+      { name: "10 of Pentacles", sub: "marriage, family, long-term stability" },
+      { name: "Page of Pentacles", sub: "trying seriously, learning, grounded effort" },
+      { name: "Knight of Pentacles", sub: "slow but loyal and consistent" },
+      { name: "Queen of Pentacles", sub: "nurturing, stable, wife material energy" },
+      { name: "King of Pentacles", sub: "provider, mature, financially stable person" },
+    ]
+  }
+};
+
+let selectedCards = [];
+let apiKey = '';
+
+function init() {
+  const stored = localStorage.getItem('arcana_api_key');
+  if (stored) {
+    apiKey = stored;
+    showDashboard();
+  } else {
+    document.getElementById('setup-screen').style.display = 'block';
+    document.getElementById('dashboard').style.display = 'none';
+  }
+}
+
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val.startsWith('sk-')) {
+    alert('Please enter a valid OpenAI API key (starts with sk-)');
+    return;
+  }
+  apiKey = val;
+  localStorage.setItem('arcana_api_key', val);
+  showDashboard();
+}
+
+function showDashboard() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  buildCardGrid();
+}
+
+function changeKey() {
+  localStorage.removeItem('arcana_api_key');
+  apiKey = '';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'block';
+  document.getElementById('api-key-input').value = '';
+}
+
+function buildCardGrid() {
+  const container = document.getElementById('card-grid-container');
+  container.innerHTML = '';
+
+  for (const [suitName, suitData] of Object.entries(CARDS)) {
+    const section = document.createElement('div');
+    section.className = 'suit-section';
+
+    const header = document.createElement('div');
+    header.className = 'suit-header';
+    header.innerHTML = `
+      <span class="suit-emoji">${suitData.emoji}</span>
+      <span class="suit-name">${suitName}</span>
+      <span class="suit-desc">${suitData.desc}</span>
+    `;
+    section.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.className = 'cards-grid';
+
+    suitData.cards.forEach(card => {
+      const tile = document.createElement('div');
+      tile.className = 'card-tile';
+      tile.dataset.name = card.name;
+      tile.innerHTML = `<div class="card-tile-name">${card.name}</div><div class="card-tile-sub">${card.sub}</div>`;
+      tile.addEventListener('click', () => toggleCard(card.name, tile));
+      grid.appendChild(tile);
+    });
+
+    section.appendChild(grid);
+    container.appendChild(section);
+  }
+}
+
+function toggleCard(name, tile) {
+  const idx = selectedCards.indexOf(name);
+  if (idx === -1) {
+    selectedCards.push(name);
+    tile.classList.add('selected');
+  } else {
+    selectedCards.splice(idx, 1);
+    tile.classList.remove('selected');
+  }
+  renderSelectedTags();
+}
+
+function renderSelectedTags() {
+  const container = document.getElementById('selected-tags-container');
+  const countEl = document.getElementById('selected-count');
+  const submitLabel = document.getElementById('submit-label');
+  const clearBtn = document.getElementById('clear-btn');
+
+  countEl.textContent = selectedCards.length;
+
+  if (selectedCards.length === 0) {
+    container.innerHTML = '<div class="empty-state">Tap cards below to add them to your reading...</div>';
+    submitLabel.textContent = 'Select at least 1 card';
+    clearBtn.style.display = 'none';
+    return;
+  }
+
+  clearBtn.style.display = 'inline-flex';
+  submitLabel.textContent = `${selectedCards.length} card${selectedCards.length > 1 ? 's' : ''} selected`;
+
+  container.innerHTML = '';
+  const tagsDiv = document.createElement('div');
+  tagsDiv.className = 'selected-tags';
+
+  selectedCards.forEach(name => {
+    const tag = document.createElement('div');
+    tag.className = 'tag';
+    tag.innerHTML = `${name}<button class="tag-remove" onclick="removeCard('${name.replace(/'/g,"\\'")}')">✕</button>`;
+    tagsDiv.appendChild(tag);
+  });
+
+  container.appendChild(tagsDiv);
+}
+
+function removeCard(name) {
+  const idx = selectedCards.indexOf(name);
+  if (idx !== -1) selectedCards.splice(idx, 1);
+  const tile = document.querySelector(`.card-tile[data-name="${CSS.escape(name)}"]`);
+  if (tile) tile.classList.remove('selected');
+  renderSelectedTags();
+}
+
+function clearAll() {
+  selectedCards = [];
+  document.querySelectorAll('.card-tile.selected').forEach(t => t.classList.remove('selected'));
+  renderSelectedTags();
+}
+
+async function submitReading() {
+  const question = document.getElementById('question-input').value.trim();
+  const category = document.getElementById('category-input').value.trim();
+  const errorContainer = document.getElementById('error-container');
+  errorContainer.innerHTML = '';
+
+  if (!question) {
+    errorContainer.innerHTML = '<div class="error-msg">Please enter your question.</div>';
+    return;
+  }
+  if (selectedCards.length === 0) {
+    errorContainer.innerHTML = '<div class="error-msg">Please select at least one card.</div>';
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="loading-dots"><span></span><span></span><span></span></span> Reading...`;
+
+  const outputSection = document.getElementById('output-section');
+  const outputEl = document.getElementById('reading-output');
+  const metaEl = document.getElementById('output-meta');
+
+  outputSection.style.display = 'block';
+  outputEl.textContent = '';
+  metaEl.textContent = `${category ? category + ' · ' : ''}${selectedCards.length} cards`;
+
+  outputEl.innerHTML = `<span class="loading-dots"><span></span><span></span><span></span></span>`;
+
+  outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const cardDescriptions = selectedCards.map(name => {
+    for (const [, suitData] of Object.entries(CARDS)) {
+      const found = suitData.cards.find(c => c.name === name);
+      if (found) return `• ${found.name}: ${found.sub}`;
+    }
+    return `• ${name}`;
+  }).join('\n');
+
+  const prompt = `You are a deeply insightful tarot reader. You read cards in a warm, honest, emotionally intelligent way — like a wise best friend who truly understands people and relationships. You give REAL talk, not generic readings. You pick up on the energy of the cards together, not just individually.
+
+The querent asks: "${question}"
+${category ? `Category / Focus: ${category}` : ''}
+
+Cards drawn:
+${cardDescriptions}
+
+Give a flowing, conversational reading (not a list). Speak directly to the querent. Acknowledge what the cards collectively say about the situation. Be real with them — if cards are complicated, say so. If the energy is hopeful, let that come through. Use natural, relatable language. You may use short paragraph breaks. Length: 3–5 paragraphs. End with a short intuitive closing message or advice.`;
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 900,
+        temperature: 0.82,
+        stream: true
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+
+    outputEl.innerHTML = '';
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+      for (const line of lines) {
+        const data = line.replace('data: ', '');
+        if (data === '[DONE]') break;
+        try {
+          const parsed = JSON.parse(data);
+          const delta = parsed.choices?.[0]?.delta?.content;
+          if (delta) {
+            fullText += delta;
+            outputEl.textContent = fullText;
+          }
+        } catch {}
+      }
+    }
+
+  } catch (err) {
+    outputEl.innerHTML = '';
+    errorContainer.innerHTML = `<div class="error-msg">Error: ${err.message}</div>`;
+    outputSection.style.display = 'none';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✦ Read the Cards';
+  }
+}
+
+function copyReading() {
+  const text = document.getElementById('reading-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1800);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
