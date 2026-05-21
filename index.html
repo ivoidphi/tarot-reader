@@ -395,15 +395,15 @@
   <!-- SETUP SCREEN -->
   <div id="setup-screen">
     <div class="setup-card">
-      <h2>Connect Your OpenAI Account</h2>
-      <p>Enter your OpenAI API key to begin. Your key is stored locally on your device only — never sent anywhere except directly to OpenAI.</p>
+      <h2>Connect Your Gemini Account</h2>
+      <p>Enter your free Gemini API key to begin. Get one instantly at Google AI Studio — no credit card needed. Your key is stored locally on your device only.</p>
       <div class="form-group">
-        <label>OpenAI API Key</label>
-        <input type="password" id="api-key-input" placeholder="sk-..." autocomplete="off" />
+        <label>Gemini API Key</label>
+        <input type="password" id="api-key-input" placeholder="AIza..." autocomplete="off" />
       </div>
       <button class="btn btn-primary" onclick="saveApiKey()">✦ Begin Reading</button>
       <p style="margin-top:14px; font-size:12px; color:var(--muted);">
-        Get your key at <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--accent);">platform.openai.com</a>
+        Get your free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent);">aistudio.google.com</a> — it's free, just sign in with Google.
       </p>
     </div>
   </div>
@@ -414,7 +414,7 @@
     <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
       <div class="api-status">
         <div class="api-dot"></div>
-        <span>Connected to OpenAI</span>
+        <span>Connected to Gemini (free)</span>
       </div>
       <button class="btn btn-sm" onclick="changeKey()">Change Key</button>
     </div>
@@ -595,8 +595,8 @@ function init() {
 
 function saveApiKey() {
   const val = document.getElementById('api-key-input').value.trim();
-  if (!val.startsWith('sk-')) {
-    alert('Please enter a valid OpenAI API key (starts with sk-)');
+  if (!val.startsWith('AIza') || val.length < 20) {
+    alert('Please enter a valid Gemini API key (starts with AIza)');
     return;
   }
   apiKey = val;
@@ -749,60 +749,75 @@ async function submitReading() {
     return `• ${name}`;
   }).join('\n');
 
-  const prompt = `You are a deeply insightful tarot reader. You read cards in a warm, honest, emotionally intelligent way — like a wise best friend who truly understands people and relationships. You give REAL talk, not generic readings. You pick up on the energy of the cards together, not just individually.
+  const systemInstruction = `You are a deeply insightful tarot reader. You give honest, grounded, emotionally intelligent readings — like a wise best friend who truly gets people and relationships. You give REAL talk, not vague or generic answers.
 
-The querent asks: "${question}"
-${category ? `Category / Focus: ${category}` : ''}
+STRICT RULES YOU MUST FOLLOW:
+- Write in flowing PROSE only. No bullet points, no numbered lists, no headers, no bold text, no asterisks, no markdown formatting of any kind.
+- Do NOT start with phrases like "The cards reveal..." or "This is a powerful spread..." — just dive straight into the reading.
+- Speak directly to the person using "you" — personal, warm, conversational.
+- Read the cards as a WHOLE — how they interact and what they say together, not just one by one.
+- Be specific and honest. If the energy is complicated, say so plainly. If it's hopeful, let it show naturally.
+- Use plain natural language. No mystical jargon overload.
+- Length: exactly 3 to 5 paragraphs. Each paragraph 3-5 sentences.
+- End with one short closing sentence of honest advice or intuition.
+- Do not add any sign-off, footer, or "I hope this helps" type endings.`;
+
+  const userPrompt = `Question: "${question}"
+${category ? `Focus: ${category}` : ''}
 
 Cards drawn:
 ${cardDescriptions}
 
-Give a flowing, conversational reading (not a list). Speak directly to the querent. Acknowledge what the cards collectively say about the situation. Be real with them — if cards are complicated, say so. If the energy is hopeful, let that come through. Use natural, relatable language. You may use short paragraph breaks. Length: 3–5 paragraphs. End with a short intuitive closing message or advice.`;
+Give the reading now.`;
 
   try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 900,
-        temperature: 0.82,
-        stream: true
-      })
-    });
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemInstruction }] },
+          contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+          generationConfig: {
+            temperature: 0.75,
+            topP: 0.92,
+            topK: 40,
+            maxOutputTokens: 900,
+          }
+        })
+      }
+    );
 
     if (!res.ok) {
       const err = await res.json();
       throw new Error(err.error?.message || `API error ${res.status}`);
     }
 
-    outputEl.innerHTML = '';
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText = '';
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('No response from Gemini. Try again.');
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
-      for (const line of lines) {
-        const data = line.replace('data: ', '');
-        if (data === '[DONE]') break;
-        try {
-          const parsed = JSON.parse(data);
-          const delta = parsed.choices?.[0]?.delta?.content;
-          if (delta) {
-            fullText += delta;
-            outputEl.textContent = fullText;
-          }
-        } catch {}
+    outputEl.innerHTML = '';
+    // Simulate streaming by revealing text word by word
+    const words = text.split(' ');
+    let i = 0;
+    let displayed = '';
+    outputEl.textContent = '';
+
+    const stream = setInterval(() => {
+      const chunk = words.slice(i, i + 4).join(' ');
+      displayed += (i > 0 ? ' ' : '') + chunk;
+      outputEl.textContent = displayed;
+      i += 4;
+      if (i >= words.length) {
+        clearInterval(stream);
+        outputEl.textContent = text;
+        btn.disabled = false;
+        btn.innerHTML = '✦ Read the Cards';
       }
-    }
+    }, 35);
+    return;
 
   } catch (err) {
     outputEl.innerHTML = '';
