@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Arcana — Tarot Reading</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
@@ -23,12 +23,16 @@
     --card-hover: #231d3e;
     --selected: #2d2250;
     --selected-border: #9b70ff;
+    --reversed: #2e1515;
+    --reversed-border: #cc5555;
+    --reversed-text: #ffaaaa;
     --tag-bg: rgba(155,112,255,0.18);
+    --tag-rev-bg: rgba(200,80,80,0.2);
     --radius: 10px;
     --radius-lg: 16px;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   body {
     font-family: 'Crimson Pro', Georgia, serif;
@@ -36,9 +40,9 @@
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Stars bg */
   body::before {
     content: '';
     position: fixed;
@@ -48,100 +52,93 @@
       radial-gradient(1px 1px at 40% 60%, rgba(255,255,255,0.2) 0%, transparent 100%),
       radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,0.25) 0%, transparent 100%),
       radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,0.2) 0%, transparent 100%),
-      radial-gradient(1px 1px at 55% 90%, rgba(255,255,255,0.15) 0%, transparent 100%),
-      radial-gradient(1.5px 1.5px at 25% 45%, rgba(200,170,255,0.2) 0%, transparent 100%),
-      radial-gradient(1px 1px at 90% 35%, rgba(255,255,255,0.2) 0%, transparent 100%),
-      radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.15) 0%, transparent 100%);
+      radial-gradient(1.5px 1.5px at 25% 45%, rgba(200,170,255,0.2) 0%, transparent 100%);
     pointer-events: none;
     z-index: 0;
   }
 
-  .app { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 0 16px 60px; }
+  .app { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 0 14px 80px; }
 
   /* Header */
   .header {
     text-align: center;
-    padding: 40px 0 32px;
+    padding: 32px 0 24px;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 32px;
+    margin-bottom: 28px;
   }
-  .header-symbol { font-size: 28px; margin-bottom: 8px; }
+  .header-symbol { font-size: 22px; margin-bottom: 6px; }
   .header h1 {
     font-family: 'Cinzel', serif;
-    font-size: clamp(26px, 6vw, 38px);
+    font-size: clamp(24px, 7vw, 38px);
     font-weight: 600;
     letter-spacing: 0.12em;
     color: var(--accent2);
   }
-  .header p { font-size: 15px; color: var(--muted); margin-top: 6px; font-style: italic; }
+  .header p { font-size: 14px; color: var(--muted); margin-top: 5px; font-style: italic; }
 
-  /* API Key setup */
-  #setup-screen { padding: 24px 0; }
+  /* Setup */
+  #setup-screen { padding: 16px 0; }
   .setup-card {
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 28px;
+    padding: 22px 18px;
   }
   .setup-card h2 {
     font-family: 'Cinzel', serif;
-    font-size: 17px;
+    font-size: 16px;
     color: var(--accent);
     margin-bottom: 8px;
     letter-spacing: 0.06em;
   }
-  .setup-card p { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+  .setup-card p { font-size: 14px; color: var(--muted); margin-bottom: 18px; line-height: 1.6; }
 
-  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
 
-  input[type="text"], input[type="password"], textarea, select {
+  input[type="text"], input[type="password"], textarea {
     width: 100%;
     background: var(--bg3);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 12px 14px;
+    padding: 13px 14px;
     color: var(--text);
     font-family: 'Crimson Pro', serif;
-    font-size: 16px;
+    font-size: 16px; /* 16px prevents iOS zoom */
     outline: none;
     transition: border-color 0.2s;
+    -webkit-appearance: none;
   }
-  input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
-    border-color: var(--accent);
-  }
+  input:focus, textarea:focus { border-color: var(--accent); }
   textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 
   .btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    padding: 12px 24px;
+    padding: 13px 22px;
     border-radius: var(--radius);
     border: 1px solid var(--border2);
     background: transparent;
     color: var(--accent2);
     font-family: 'Cinzel', serif;
-    font-size: 14px;
+    font-size: 13px;
     letter-spacing: 0.06em;
     cursor: pointer;
     transition: all 0.2s;
+    min-height: 44px; /* touch target */
+    -webkit-appearance: none;
   }
+  .btn:active { opacity: 0.75; }
   .btn:hover { background: rgba(155,112,255,0.12); border-color: var(--accent); }
-  .btn-primary {
-    background: rgba(155,112,255,0.2);
-    border-color: var(--selected-border);
-  }
+  .btn-primary { background: rgba(155,112,255,0.2); border-color: var(--selected-border); }
   .btn-primary:hover { background: rgba(155,112,255,0.35); }
-  .btn-gold {
-    background: rgba(240,192,96,0.15);
-    border-color: var(--gold);
-    color: var(--gold2);
-  }
+  .btn-gold { background: rgba(240,192,96,0.15); border-color: var(--gold); color: var(--gold2); }
   .btn-gold:hover { background: rgba(240,192,96,0.28); }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-sm { padding: 7px 14px; font-size: 12px; }
+  .btn-sm { padding: 9px 14px; font-size: 11px; min-height: 36px; }
 
-  /* Main dashboard */
+  /* Dashboard */
   #dashboard { display: none; }
 
   .section-label {
@@ -152,128 +149,161 @@
     text-transform: uppercase;
     margin-bottom: 10px;
   }
+  .form-group { margin-bottom: 20px; }
 
-  .form-group { margin-bottom: 22px; }
+  /* Tap hint */
+  .tap-hint {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 13px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    align-items: center;
+  }
+  .hint-item { display: flex; align-items: center; gap: 6px; }
+  .hint-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .hint-dot.upright { background: var(--selected-border); }
+  .hint-dot.reversed { background: var(--reversed-border); }
 
-  /* Card grid */
-  .suit-section { margin-bottom: 28px; }
+  /* Suit sections */
+  .suit-section { margin-bottom: 24px; }
   .suit-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 7px;
     border-bottom: 1px solid var(--border);
   }
-  .suit-name {
-    font-family: 'Cinzel', serif;
-    font-size: 13px;
-    letter-spacing: 0.1em;
-    color: var(--accent);
-  }
-  .suit-emoji { font-size: 16px; }
-  .suit-desc { font-size: 12px; color: var(--muted); font-style: italic; }
+  .suit-name { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.1em; color: var(--accent); }
+  .suit-emoji { font-size: 15px; }
+  .suit-desc { font-size: 11px; color: var(--muted); font-style: italic; }
 
+  /* Card grid — 3 cols on mobile */
   .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 7px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
   }
 
   .card-tile {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 9px 8px;
+    padding: 9px 7px 8px;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background 0.12s, border-color 0.12s;
     user-select: none;
     text-align: center;
     position: relative;
+    min-height: 54px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
-  .card-tile:hover { background: var(--card-hover); border-color: var(--border2); transform: translateY(-1px); }
-  .card-tile.selected {
+  .card-tile:active { opacity: 0.8; }
+
+  /* Upright selected */
+  .card-tile.upright {
     background: var(--selected);
     border-color: var(--selected-border);
   }
-  .card-tile.selected::after {
+  .card-tile.upright .card-tile-name { color: var(--accent2); }
+
+  /* Reversed selected */
+  .card-tile.reversed {
+    background: var(--reversed);
+    border-color: var(--reversed-border);
+  }
+  .card-tile.reversed .card-tile-name { color: var(--reversed-text); }
+
+  /* Reversed symbol badge */
+  .card-tile.reversed::before {
+    content: '↓';
+    position: absolute;
+    top: 3px;
+    right: 5px;
+    font-size: 9px;
+    color: var(--reversed-border);
+    font-family: sans-serif;
+    line-height: 1;
+  }
+  .card-tile.upright::before {
     content: '✓';
     position: absolute;
-    top: 4px;
+    top: 3px;
     right: 5px;
-    font-size: 10px;
-    color: var(--accent);
+    font-size: 9px;
+    color: var(--selected-border);
     font-family: sans-serif;
   }
+
   .card-tile-name {
-    font-size: 11.5px;
-    line-height: 1.35;
+    font-size: 11px;
+    line-height: 1.3;
     color: var(--text);
-    font-weight: 400;
-  }
-  .card-tile.selected .card-tile-name { color: var(--accent2); }
-  .card-tile-sub {
-    font-size: 10px;
-    color: var(--muted);
-    margin-top: 3px;
-    font-style: italic;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
   }
 
-  /* Selected cards list */
+  /* Selected panel */
   .selected-panel {
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 16px 18px;
-    margin-bottom: 22px;
-    min-height: 64px;
-  }
-  .selected-panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
+    padding: 14px 15px;
+    margin-bottom: 20px;
+    min-height: 56px;
   }
   .selected-tags { display: flex; flex-wrap: wrap; gap: 6px; }
   .tag {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: var(--tag-bg);
-    border: 1px solid rgba(155,112,255,0.25);
+    gap: 5px;
     border-radius: 20px;
-    padding: 4px 10px 4px 12px;
-    font-size: 12.5px;
+    padding: 5px 10px 5px 11px;
+    font-size: 12px;
+  }
+  .tag.upright {
+    background: var(--tag-bg);
+    border: 1px solid rgba(155,112,255,0.3);
     color: var(--accent2);
   }
+  .tag.reversed {
+    background: var(--tag-rev-bg);
+    border: 1px solid rgba(200,80,80,0.35);
+    color: var(--reversed-text);
+  }
+  .tag-label { font-size: 10px; opacity: 0.7; font-style: italic; }
   .tag-remove {
-    width: 16px; height: 16px;
+    width: 17px; height: 17px;
     border-radius: 50%;
     border: none;
-    background: rgba(155,112,255,0.3);
-    color: var(--accent);
+    background: rgba(255,255,255,0.1);
+    color: inherit;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px;
-    line-height: 1;
-    transition: background 0.15s;
+    font-size: 10px;
     flex-shrink: 0;
+    transition: background 0.15s;
   }
-  .tag-remove:hover { background: rgba(220,80,80,0.4); color: #ff9090; }
+  .tag-remove:active { background: rgba(220,80,80,0.4); }
 
   .empty-state { font-size: 13px; color: var(--muted); font-style: italic; }
 
-  /* Reading output */
-  #output-section { display: none; margin-top: 32px; }
+  /* Output */
+  #output-section { display: none; margin-top: 28px; }
   .reading-card {
     background: var(--bg2);
     border: 1px solid var(--border2);
     border-radius: var(--radius-lg);
-    padding: 28px;
+    padding: 22px 18px;
     position: relative;
     overflow: hidden;
   }
@@ -288,25 +318,24 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 20px;
-    gap: 12px;
+    margin-bottom: 18px;
+    gap: 10px;
   }
   .reading-meta h3 {
     font-family: 'Cinzel', serif;
-    font-size: 15px;
+    font-size: 14px;
     color: var(--accent2);
-    margin-bottom: 4px;
+    margin-bottom: 3px;
   }
-  .reading-meta p { font-size: 13px; color: var(--muted); }
+  .reading-meta p { font-size: 12px; color: var(--muted); }
   .reading-body {
-    font-size: 16.5px;
+    font-size: 16px;
     line-height: 1.85;
     color: var(--text);
     white-space: pre-wrap;
   }
-  .reading-body em { color: var(--accent); font-style: italic; }
 
-  /* loading dots */
+  /* Loading dots */
   .loading-dots { display: inline-flex; gap: 5px; align-items: center; }
   .loading-dots span {
     width: 5px; height: 5px;
@@ -317,69 +346,59 @@
   .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
   .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
   @keyframes bounce {
-    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    0%,60%,100% { transform: translateY(0); opacity: 0.5; }
     30% { transform: translateY(-5px); opacity: 1; }
   }
 
   /* Sticky submit bar */
   .submit-bar {
-    position: sticky;
-    bottom: 0;
-    background: linear-gradient(to top, var(--bg) 80%, transparent);
-    padding: 16px 0 8px;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, var(--bg) 75%, transparent);
+    padding: 12px 16px 16px;
     display: flex;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
-    flex-wrap: wrap;
-    z-index: 10;
+    z-index: 20;
   }
-  .submit-bar .count-badge {
-    font-size: 13px; color: var(--muted);
-  }
+  .submit-bar .btn-gold { flex: 1; }
+  .count-badge { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
   .error-msg {
     background: rgba(220,80,80,0.12);
     border: 1px solid rgba(220,80,80,0.3);
     border-radius: var(--radius);
-    padding: 12px 16px;
-    font-size: 14px;
+    padding: 12px 14px;
+    font-size: 13px;
     color: #ff9090;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
-  /* API key display */
   .api-status {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     font-size: 13px;
     color: var(--muted);
   }
-  .api-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: #4caf50;
+  .api-dot { width: 7px; height: 7px; border-radius: 50%; background: #4caf50; }
+
+  .divider { height: 1px; background: var(--border); margin: 22px 0; }
+
+  /* Scrollable card section */
+  .cards-scroll-area { padding-bottom: 4px; }
+
+  /* API status row */
+  .api-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
   }
 
-  /* Divider */
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 28px 0;
-  }
-
-  /* Scrollable card area */
-  .cards-scroll-area { max-height: 480px; overflow-y: auto; padding-right: 4px; }
-  .cards-scroll-area::-webkit-scrollbar { width: 4px; }
-  .cards-scroll-area::-webkit-scrollbar-track { background: transparent; }
-  .cards-scroll-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-  @media (max-width: 500px) {
-    .cards-grid { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 6px; }
-    .card-tile { padding: 7px 6px; }
-    .card-tile-name { font-size: 10.5px; }
-    .card-tile-sub { display: none; }
-    .reading-body { font-size: 15px; }
+  @media (min-width: 480px) {
+    .cards-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+    .card-tile-name { font-size: 12px; }
   }
 </style>
 </head>
@@ -403,7 +422,7 @@
       </div>
       <button class="btn btn-primary" onclick="saveApiKey()">✦ Begin Reading</button>
       <p style="margin-top:14px; font-size:12px; color:var(--muted);">
-        Get your free key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent);">console.groq.com</a> — it's free, just sign in with Google.
+        Get your free key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent);">console.groq.com</a>
       </p>
     </div>
   </div>
@@ -411,22 +430,21 @@
   <!-- DASHBOARD -->
   <div id="dashboard">
 
-    <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+    <div class="api-row">
       <div class="api-status">
         <div class="api-dot"></div>
-        <span>Connected to Groq (free)</span>
+        <span>Connected to Groq</span>
       </div>
       <button class="btn btn-sm" onclick="changeKey()">Change Key</button>
     </div>
 
-    <!-- Question + Category -->
     <div class="form-group">
       <label>Your Question</label>
-      <textarea id="question-input" placeholder="e.g. Will things work out between me and this person?&#10;What energy is around my love life right now?" rows="3"></textarea>
+      <textarea id="question-input" placeholder="e.g. Will things work out between me and this person?" rows="3"></textarea>
     </div>
     <div class="form-group">
       <label>Category / Focus</label>
-      <input type="text" id="category-input" placeholder="e.g. Love & Relationships · Career · Self-Growth · General" />
+      <input type="text" id="category-input" placeholder="Love · Career · Self-Growth · General" />
     </div>
 
     <div class="divider"></div>
@@ -435,20 +453,23 @@
     <div class="section-label">Selected Cards <span id="selected-count" style="color:var(--accent);">0</span></div>
     <div class="selected-panel">
       <div id="selected-tags-container">
-        <div class="empty-state">Tap cards below to add them to your reading...</div>
+        <div class="empty-state">Tap cards below to add them...</div>
       </div>
     </div>
 
-    <!-- Cards picker -->
-    <div class="section-label" style="margin-bottom:14px;">Pick Your Cards</div>
-    <div class="cards-scroll-area" id="card-grid-container"></div>
-
-    <div class="submit-bar">
-      <button class="btn btn-gold" id="submit-btn" onclick="submitReading()">✦ Read the Cards</button>
-      <span class="count-badge" id="submit-label">Select at least 1 card</span>
-      <button class="btn btn-sm" id="clear-btn" onclick="clearAll()" style="margin-left:auto; display:none;">Clear all</button>
+    <!-- Tap hint -->
+    <div class="tap-hint">
+      <span style="font-family:'Cinzel',serif; font-size:11px; letter-spacing:0.06em; color:var(--accent); margin-right:4px;">HOW TO SELECT</span>
+      <div class="hint-item"><div class="hint-dot upright"></div><span>1st tap = Upright</span></div>
+      <div class="hint-item"><div class="hint-dot reversed"></div><span>2nd tap = Reversed</span></div>
+      <div class="hint-item" style="color:var(--muted);">3rd tap = Remove</div>
     </div>
 
+    <!-- Cards picker -->
+    <div class="section-label" style="margin-bottom:12px;">Pick Your Cards</div>
+    <div class="cards-scroll-area" id="card-grid-container"></div>
+
+    <!-- Error -->
     <div id="error-container"></div>
 
     <!-- Output -->
@@ -465,7 +486,17 @@
       </div>
     </div>
 
+    <!-- spacer for sticky bar -->
+    <div style="height: 70px;"></div>
+
   </div>
+</div>
+
+<!-- Sticky submit bar -->
+<div class="submit-bar" id="submit-bar" style="display:none;">
+  <button class="btn btn-gold" id="submit-btn" onclick="submitReading()">✦ Read the Cards</button>
+  <span class="count-badge" id="submit-label">0 cards</span>
+  <button class="btn btn-sm" id="clear-btn" onclick="clearAll()" style="display:none;">Clear</button>
 </div>
 
 <script>
@@ -579,7 +610,8 @@ const CARDS = {
   }
 };
 
-let selectedCards = [];
+// selectedCards: Map of cardName -> 'upright' | 'reversed'
+let selectedCards = new Map();
 let apiKey = '';
 
 function init() {
@@ -607,6 +639,7 @@ function saveApiKey() {
 function showDashboard() {
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('submit-bar').style.display = 'flex';
   buildCardGrid();
 }
 
@@ -614,6 +647,7 @@ function changeKey() {
   localStorage.removeItem('arcana_api_key');
   apiKey = '';
   document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('submit-bar').style.display = 'none';
   document.getElementById('setup-screen').style.display = 'block';
   document.getElementById('api-key-input').value = '';
 }
@@ -642,8 +676,8 @@ function buildCardGrid() {
       const tile = document.createElement('div');
       tile.className = 'card-tile';
       tile.dataset.name = card.name;
-      tile.innerHTML = `<div class="card-tile-name">${card.name}</div><div class="card-tile-sub">${card.sub}</div>`;
-      tile.addEventListener('click', () => toggleCard(card.name, tile));
+      tile.innerHTML = `<div class="card-tile-name">${card.name}</div>`;
+      tile.addEventListener('click', () => cycleCard(card.name, tile));
       grid.appendChild(tile);
     });
 
@@ -652,14 +686,22 @@ function buildCardGrid() {
   }
 }
 
-function toggleCard(name, tile) {
-  const idx = selectedCards.indexOf(name);
-  if (idx === -1) {
-    selectedCards.push(name);
-    tile.classList.add('selected');
+// Cycle: none → upright → reversed → none
+function cycleCard(name, tile) {
+  const current = selectedCards.get(name);
+  if (!current) {
+    // none → upright
+    selectedCards.set(name, 'upright');
+    tile.classList.add('upright');
+  } else if (current === 'upright') {
+    // upright → reversed
+    selectedCards.set(name, 'reversed');
+    tile.classList.remove('upright');
+    tile.classList.add('reversed');
   } else {
-    selectedCards.splice(idx, 1);
-    tile.classList.remove('selected');
+    // reversed → none
+    selectedCards.delete(name);
+    tile.classList.remove('reversed');
   }
   renderSelectedTags();
 }
@@ -670,26 +712,28 @@ function renderSelectedTags() {
   const submitLabel = document.getElementById('submit-label');
   const clearBtn = document.getElementById('clear-btn');
 
-  countEl.textContent = selectedCards.length;
+  countEl.textContent = selectedCards.size;
 
-  if (selectedCards.length === 0) {
-    container.innerHTML = '<div class="empty-state">Tap cards below to add them to your reading...</div>';
-    submitLabel.textContent = 'Select at least 1 card';
+  if (selectedCards.size === 0) {
+    container.innerHTML = '<div class="empty-state">Tap cards below to add them...</div>';
+    submitLabel.textContent = '0 cards';
     clearBtn.style.display = 'none';
     return;
   }
 
   clearBtn.style.display = 'inline-flex';
-  submitLabel.textContent = `${selectedCards.length} card${selectedCards.length > 1 ? 's' : ''} selected`;
+  submitLabel.textContent = `${selectedCards.size} card${selectedCards.size > 1 ? 's' : ''}`;
 
   container.innerHTML = '';
   const tagsDiv = document.createElement('div');
   tagsDiv.className = 'selected-tags';
 
-  selectedCards.forEach(name => {
+  selectedCards.forEach((orientation, name) => {
     const tag = document.createElement('div');
-    tag.className = 'tag';
-    tag.innerHTML = `${name}<button class="tag-remove" onclick="removeCard('${name.replace(/'/g,"\\'")}')">✕</button>`;
+    tag.className = `tag ${orientation}`;
+    const label = orientation === 'reversed' ? ' ↓' : '';
+    const safeName = name.replace(/'/g, "\\'");
+    tag.innerHTML = `${name}<span class="tag-label">${label}</span><button class="tag-remove" onclick="removeCard('${safeName}')">✕</button>`;
     tagsDiv.appendChild(tag);
   });
 
@@ -697,16 +741,18 @@ function renderSelectedTags() {
 }
 
 function removeCard(name) {
-  const idx = selectedCards.indexOf(name);
-  if (idx !== -1) selectedCards.splice(idx, 1);
+  selectedCards.delete(name);
   const tile = document.querySelector(`.card-tile[data-name="${CSS.escape(name)}"]`);
-  if (tile) tile.classList.remove('selected');
+  if (tile) {
+    tile.classList.remove('upright', 'reversed');
+  }
   renderSelectedTags();
 }
 
 function clearAll() {
-  selectedCards = [];
-  document.querySelectorAll('.card-tile.selected').forEach(t => t.classList.remove('selected'));
+  selectedCards.clear();
+  document.querySelectorAll('.card-tile.upright, .card-tile.reversed')
+    .forEach(t => t.classList.remove('upright', 'reversed'));
   renderSelectedTags();
 }
 
@@ -720,14 +766,14 @@ async function submitReading() {
     errorContainer.innerHTML = '<div class="error-msg">Please enter your question.</div>';
     return;
   }
-  if (selectedCards.length === 0) {
+  if (selectedCards.size === 0) {
     errorContainer.innerHTML = '<div class="error-msg">Please select at least one card.</div>';
     return;
   }
 
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
-  btn.innerHTML = `<span class="loading-dots"><span></span><span></span><span></span></span> Reading...`;
+  btn.innerHTML = `<span class="loading-dots"><span></span><span></span><span></span></span>`;
 
   const outputSection = document.getElementById('output-section');
   const outputEl = document.getElementById('reading-output');
@@ -735,19 +781,30 @@ async function submitReading() {
 
   outputSection.style.display = 'block';
   outputEl.textContent = '';
-  metaEl.textContent = `${category ? category + ' · ' : ''}${selectedCards.length} cards`;
+
+  const uprightCount = [...selectedCards.values()].filter(v => v === 'upright').length;
+  const reversedCount = [...selectedCards.values()].filter(v => v === 'reversed').length;
+  let metaParts = [];
+  if (category) metaParts.push(category);
+  metaParts.push(`${uprightCount} upright`);
+  if (reversedCount > 0) metaParts.push(`${reversedCount} reversed`);
+  metaEl.textContent = metaParts.join(' · ');
 
   outputEl.innerHTML = `<span class="loading-dots"><span></span><span></span><span></span></span>`;
-
   outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  const cardDescriptions = selectedCards.map(name => {
+  // Build card descriptions with orientation
+  const cardDescriptions = [...selectedCards.entries()].map(([name, orientation]) => {
+    let sub = '';
     for (const [, suitData] of Object.entries(CARDS)) {
       const found = suitData.cards.find(c => c.name === name);
-      if (found) return `• ${found.name}: ${found.sub}`;
+      if (found) { sub = found.sub; break; }
     }
-    return `• ${name}`;
+    const orientationLabel = orientation === 'reversed' ? 'REVERSED' : 'Upright';
+    return `• ${name} (${orientationLabel})${sub ? ': ' + sub : ''}`;
   }).join('\n');
+
+  const hasReversed = reversedCount > 0;
 
   const systemInstruction = `You are a deeply insightful tarot reader. You give honest, grounded, emotionally intelligent readings — like a wise best friend who truly gets people and relationships. You give REAL talk, not vague or generic answers.
 
@@ -756,9 +813,10 @@ STRICT RULES YOU MUST FOLLOW:
 - Do NOT start with phrases like "The cards reveal..." or "This is a powerful spread..." — just dive straight into the reading.
 - Speak directly to the person using "you" — personal, warm, conversational.
 - Read the cards as a WHOLE — how they interact and what they say together, not just one by one.
+- When a card appears REVERSED, interpret it accordingly: its energy is blocked, internalized, delayed, or expressing in a shadow/distorted form. Integrate this naturally into the reading.
 - Be specific and honest. If the energy is complicated, say so plainly. If it's hopeful, let it show naturally.
 - Use plain natural language. No mystical jargon overload.
-- Length: exactly 3 to 5 paragraphs. Each paragraph 3-5 sentences.
+- Length: exactly 3 to 5 paragraphs. Each paragraph 3–5 sentences.
 - End with one short closing sentence of honest advice or intuition.
 - Do not add any sign-off, footer, or "I hope this helps" type endings.`;
 
@@ -767,6 +825,7 @@ ${category ? `Focus: ${category}` : ''}
 
 Cards drawn:
 ${cardDescriptions}
+${hasReversed ? '\nNote: Reversed cards indicate blocked, internalized, or shadow expressions of that card\'s core energy.' : ''}
 
 Give the reading now.`;
 
